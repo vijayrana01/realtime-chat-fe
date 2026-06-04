@@ -208,7 +208,7 @@ export default function Sidebar() {
       className={`
         relative flex flex-col bg-white border-r border-slate-100
         w-full h-full
-        lg:w-[300px] lg:min-w-[300px] lg:max-w-[300px]
+        lg:w-[20%] lg:min-w-[300px] lg:max-w-[300px]
         ${selectedUser ? "hidden lg:flex" : "flex"}
       `}
     >
