@@ -141,7 +141,8 @@ useEffect(() => {
   }
 
   return (
-    <div className="w-full lg:w-[75%] h-full flex flex-col bg-white">
+   <div className="w-full lg:flex-1 h-full flex flex-col bg-white">
+
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-200">
         {/* Back — mobile only */}
