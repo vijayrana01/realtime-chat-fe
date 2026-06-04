@@ -545,6 +545,7 @@ export default function Sidebar() {
       )}
 
       {/* ── Footer / Logout ── */}
+    {/* ── Footer / Logout ── */}
       <div className="absolute bottom-0 left-0 w-full px-4 py-3 border-t border-slate-100 bg-white">
         <button
           onClick={handleLogout}
@@ -555,6 +556,9 @@ export default function Sidebar() {
           </svg>
           Log out
         </button>
+        <p className="text-[10px] text-slate-300 text-center mt-1 select-none">
+          © {new Date().getFullYear()} All rights reserved to Vijay Rana
+        </p>
       </div>
     </div>
   );
