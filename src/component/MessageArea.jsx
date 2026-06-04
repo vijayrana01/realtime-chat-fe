@@ -112,7 +112,7 @@ useEffect(() => {
 
   if (!selectedUser) {
     return (
-      <div className="hidden lg:flex lg:w-[75%] h-full flex-col items-center justify-center bg-slate-50 gap-4">
+      <div className="hidden lg:flex lg:w-[80%] h-full flex-col items-center justify-center bg-slate-50 gap-4">
         <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200 flex items-center justify-center">
           <svg
             className="w-7 h-7 text-slate-300"
