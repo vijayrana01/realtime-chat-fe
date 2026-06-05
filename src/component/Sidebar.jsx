@@ -27,7 +27,6 @@ const PALETTES = [
 const colorFor = (id) =>
   PALETTES[(id?.charCodeAt(0) ?? 0) % PALETTES.length];
 
-// ── format time helper ─────────────────────────────────────
 const formatTime = (dateStr) => {
   if (!dateStr) return "";
   const date = new Date(dateStr);
@@ -41,7 +40,6 @@ const formatTime = (dateStr) => {
   return date.toLocaleDateString([], { month: "short", day: "numeric" });
 };
 
-// ── Avatar component ───────────────────────────────────────
 function Avatar({ id, image, name, online = false }) {
   return (
     <div className="relative shrink-0">
@@ -76,7 +74,6 @@ export default function Sidebar() {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [loadingReq, setLoadingReq] = useState(null);
 
-  // ── fetch pending requests ─────────────────────────────
   useEffect(() => {
     fetchPendingRequests();
   }, []);
@@ -112,10 +109,10 @@ export default function Sidebar() {
     return () => clearTimeout(t);
   }, [friendSearch]);
 
-  // ── debounced chat search → updates searchData in Redux ─
+  // ── debounced chat search ──────────────────────────────
   useEffect(() => {
     if (!search.trim()) {
-      dispatch(setSearchData([])); // ✅ clear when empty
+      dispatch(setSearchData([]));
       return;
     }
     const t = setTimeout(async () => {
@@ -124,7 +121,7 @@ export default function Sidebar() {
           `${API}/api/user/search?query=${search}`,
           { withCredentials: true }
         );
-        dispatch(setSearchData(res.data.users ?? [])); // ✅ save to Redux
+        dispatch(setSearchData(res.data.users ?? []));
       } catch (err) {
         console.error(err);
       }
@@ -132,16 +129,11 @@ export default function Sidebar() {
     return () => clearTimeout(t);
   }, [search]);
 
-  // ✅ use searchData when searching, otherUsers (friends) otherwise
-  const chatList = search.trim()
-    ? (searchData ?? [])
-    : (otherUsers ?? []);
-
+  const chatList = search.trim() ? (searchData ?? []) : (otherUsers ?? []);
   const filteredChats = chatList.filter((c) =>
     (c.userName || c.name)?.toLowerCase().includes(search.toLowerCase())
   );
 
-  // ── send friend request ────────────────────────────────
   const sendFriendRequest = async (userId) => {
     try {
       await axios.post(
@@ -156,7 +148,6 @@ export default function Sidebar() {
     }
   };
 
-  // ── accept request ─────────────────────────────────────
   const acceptRequest = async (requestId) => {
     setLoadingReq(requestId);
     try {
@@ -174,7 +165,6 @@ export default function Sidebar() {
     }
   };
 
-  // ── decline request ────────────────────────────────────
   const declineRequest = async (requestId) => {
     setLoadingReq(requestId);
     try {
@@ -191,7 +181,6 @@ export default function Sidebar() {
     }
   };
 
-  // ── logout ─────────────────────────────────────────────
   const handleLogout = async () => {
     try {
       await axios.get(`${API}/api/auth/logout`, { withCredentials: true });
@@ -207,13 +196,13 @@ export default function Sidebar() {
     <div
       className={`
         relative flex flex-col bg-white border-r border-slate-100
-        w-full h-full
+        w-full h-full min-h-0
         lg:w-[20%] lg:min-w-[300px] lg:max-w-[300px]
         ${selectedUser ? "hidden lg:flex" : "flex"}
       `}
     >
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 shrink-0">
         <div
           className="relative shrink-0 cursor-pointer"
           onClick={() => navigate("/profile")}
@@ -266,7 +255,7 @@ export default function Sidebar() {
       </div>
 
       {/* ── Search ── */}
-      <div className="px-4 py-2.5 border-b border-slate-100">
+      <div className="px-4 py-2.5 border-b border-slate-100 shrink-0">
         <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 h-9">
           <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
@@ -307,7 +296,7 @@ export default function Sidebar() {
       </div>
 
       {/* ── Main Tabs ── */}
-      <div className="flex border-b border-slate-100">
+      <div className="flex border-b border-slate-100 shrink-0">
         {[{ key: "chats", label: "Chats" }, { key: "friends", label: "Friends" }].map(({ key, label }) => (
           <button
             key={key}
@@ -330,13 +319,13 @@ export default function Sidebar() {
 
       {/* ════════ CHATS PANEL ════════ */}
       {mainTab === "chats" && (
-        <>
+        <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
           {filteredChats.length > 0 && (
-            <p className="px-4 pt-3 pb-1 text-[10px] font-medium tracking-widest uppercase text-slate-400">
+            <p className="px-4 pt-3 pb-1 text-[10px] font-medium tracking-widest uppercase text-slate-400 shrink-0">
               {search.trim() ? "Search results" : "Recent"}
             </p>
           )}
-          <div className="flex-1 overflow-y-auto px-2 pb-16 scrollbar-thin scrollbar-thumb-slate-200">
+          <div className="flex-1 overflow-y-auto px-2 pb-20 min-h-0 scrollbar-thin scrollbar-thumb-slate-200">
             {filteredChats.length === 0 && (
               <div className="flex flex-col items-center justify-center mt-16 gap-3">
                 <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
@@ -399,14 +388,14 @@ export default function Sidebar() {
               );
             })}
           </div>
-        </>
+        </div>
       )}
 
       {/* ════════ FRIENDS PANEL ════════ */}
       {mainTab === "friends" && (
-        <div className="flex flex-col flex-1 overflow-hidden">
+        <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
           {/* Sub-tabs */}
-          <div className="flex gap-2 px-4 py-3 border-b border-slate-100">
+          <div className="flex gap-2 px-4 py-3 border-b border-slate-100 shrink-0">
             {[{ key: "add", label: "Add people" }, { key: "pending", label: "Pending" }].map(({ key, label }) => (
               <button
                 key={key}
@@ -429,7 +418,7 @@ export default function Sidebar() {
 
           {/* ── Add tab ── */}
           {friendTab === "add" && (
-            <div className="flex-1 overflow-y-auto px-2 py-2 pb-16 scrollbar-thin scrollbar-thumb-slate-200">
+            <div className="flex-1 overflow-y-auto min-h-0 px-2 py-2 pb-24 scrollbar-thin scrollbar-thumb-slate-200">
               {!friendSearch.trim() && (
                 <div className="flex flex-col items-center justify-center mt-12 gap-3">
                   <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
@@ -485,7 +474,7 @@ export default function Sidebar() {
 
           {/* ── Pending tab ── */}
           {friendTab === "pending" && (
-            <div className="flex-1 overflow-y-auto px-2 py-2 pb-16 scrollbar-thin scrollbar-thumb-slate-200">
+            <div className="flex-1 overflow-y-auto min-h-0 px-2 py-2 pb-24 scrollbar-thin scrollbar-thumb-slate-200">
               {pendingRequests.length === 0 && (
                 <div className="flex flex-col items-center justify-center mt-12 gap-3">
                   <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
@@ -545,20 +534,23 @@ export default function Sidebar() {
       )}
 
       {/* ── Footer / Logout ── */}
-    {/* ── Footer / Logout ── */}
-      <div className="absolute bottom-0 left-0 w-full px-4 py-3 border-t border-slate-100 bg-white">
+      <div className="absolute bottom-0 left-0 w-full border-t border-slate-100 bg-white/80 backdrop-blur-sm px-4 pt-2 pb-3 shrink-0">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2 text-xs text-slate-400 hover:text-red-500 transition-colors w-full rounded-xl px-3 py-2 hover:bg-red-50"
+          className="flex items-center gap-2 text-xs text-slate-400 hover:text-red-500 transition-colors w-full rounded-xl px-3 py-2 hover:bg-red-50 group"
         >
-          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <svg className="w-4 h-4 shrink-0 group-hover:rotate-12 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
           </svg>
           Log out
         </button>
-        <p className="text-[10px] text-slate-300 text-center mt-1 select-none">
-          © {new Date().getFullYear()} All rights reserved to Vijay Rana
-        </p>
+        <div className="flex items-center gap-2 px-1 mt-1">
+          <div className="flex-1 h-px bg-slate-100" />
+          <p className="text-[10px] text-slate-300 select-none whitespace-nowrap">
+            © {new Date().getFullYear()} <span className="text-slate-400 font-medium">Vijay Rana</span>
+          </p>
+          <div className="flex-1 h-px bg-slate-100" />
+        </div>
       </div>
     </div>
   );
