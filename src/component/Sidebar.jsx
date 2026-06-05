@@ -14,7 +14,12 @@ import {
 const API = import.meta.env.VITE_API_URL;
 
 const initials = (name) =>
-  name?.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2) || "?";
+  name
+    ?.split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2) || "?";
 
 const PALETTES = [
   "bg-purple-50 text-purple-800",
@@ -24,8 +29,7 @@ const PALETTES = [
   "bg-sky-50 text-sky-800",
   "bg-orange-50 text-orange-800",
 ];
-const colorFor = (id) =>
-  PALETTES[(id?.charCodeAt(0) ?? 0) % PALETTES.length];
+const colorFor = (id) => PALETTES[(id?.charCodeAt(0) ?? 0) % PALETTES.length];
 
 const formatTime = (dateStr) => {
   if (!dateStr) return "";
@@ -35,8 +39,7 @@ const formatTime = (dateStr) => {
   if (diffDays === 0)
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7)
-    return date.toLocaleDateString([], { weekday: "short" });
+  if (diffDays < 7) return date.toLocaleDateString([], { weekday: "short" });
   return date.toLocaleDateString([], { month: "short", day: "numeric" });
 };
 
@@ -47,7 +50,11 @@ function Avatar({ id, image, name, online = false }) {
         className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-medium overflow-hidden ${colorFor(id)}`}
       >
         {image ? (
-          <img src={image} alt={name} className="w-full h-full object-cover rounded-full" />
+          <img
+            src={image}
+            alt={name}
+            className="w-full h-full object-cover rounded-full"
+          />
         ) : (
           initials(name)
         )}
@@ -99,7 +106,7 @@ export default function Sidebar() {
       try {
         const res = await axios.get(
           `${API}/api/user/search?query=${friendSearch}`,
-          { withCredentials: true }
+          { withCredentials: true },
         );
         setSearchResults(res.data.users ?? []);
       } catch (err) {
@@ -117,10 +124,9 @@ export default function Sidebar() {
     }
     const t = setTimeout(async () => {
       try {
-        const res = await axios.get(
-          `${API}/api/user/search?query=${search}`,
-          { withCredentials: true }
-        );
+        const res = await axios.get(`${API}/api/user/search?query=${search}`, {
+          withCredentials: true,
+        });
         dispatch(setSearchData(res.data.users ?? []));
       } catch (err) {
         console.error(err);
@@ -131,7 +137,7 @@ export default function Sidebar() {
 
   const chatList = search.trim() ? (searchData ?? []) : (otherUsers ?? []);
   const filteredChats = chatList.filter((c) =>
-    (c.userName || c.name)?.toLowerCase().includes(search.toLowerCase())
+    (c.userName || c.name)?.toLowerCase().includes(search.toLowerCase()),
   );
 
   const sendFriendRequest = async (userId) => {
@@ -139,7 +145,7 @@ export default function Sidebar() {
       await axios.post(
         `${API}/api/friends/send/${userId}`,
         {},
-        { withCredentials: true }
+        { withCredentials: true },
       );
       setSentRequests((p) => [...p, userId]);
     } catch (err) {
@@ -154,7 +160,7 @@ export default function Sidebar() {
       await axios.post(
         `${API}/api/friends/accept/${requestId}`,
         {},
-        { withCredentials: true }
+        { withCredentials: true },
       );
       setPendingRequests((p) => p.filter((r) => r._id !== requestId));
       dispatch(refreshFriends());
@@ -171,7 +177,7 @@ export default function Sidebar() {
       await axios.post(
         `${API}/api/friends/decline/${requestId}`,
         {},
-        { withCredentials: true }
+        { withCredentials: true },
       );
       setPendingRequests((p) => p.filter((r) => r._id !== requestId));
     } catch (err) {
@@ -192,13 +198,19 @@ export default function Sidebar() {
     }
   };
 
+  // ── FIX: sidebar hides on mobile ONLY when a chat is open (chats tab) ──────
+  // Previously: `selectedUser ? "hidden lg:flex" : "flex"` — this hid the
+  // entire sidebar (including the Friends tab) whenever any user was selected,
+  // even if the user had switched to the Friends panel.
+  const sidebarHidden = selectedUser && mainTab === "chats";
+
   return (
     <div
       className={`
         relative flex flex-col bg-white border-r border-slate-100
         w-full h-full min-h-0
         lg:w-[20%] lg:min-w-[300px] lg:max-w-[300px]
-        ${selectedUser ? "hidden lg:flex" : "flex"}
+        ${sidebarHidden ? "hidden lg:flex" : "flex"}
       `}
     >
       {/* ── Header ── */}
@@ -239,16 +251,36 @@ export default function Sidebar() {
             className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-colors"
             aria-label="Edit profile"
           >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 3.487a2.25 2.25 0 013.182 3.182L7.5 19.213l-4 1 1-4 12.362-12.726z" />
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M16.862 3.487a2.25 2.25 0 013.182 3.182L7.5 19.213l-4 1 1-4 12.362-12.726z"
+              />
             </svg>
           </button>
           <button
             className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-colors"
             aria-label="New chat"
           >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4.5v15m7.5-7.5h-15"
+              />
             </svg>
           </button>
         </div>
@@ -257,8 +289,18 @@ export default function Sidebar() {
       {/* ── Search ── */}
       <div className="px-4 py-2.5 border-b border-slate-100 shrink-0">
         <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 h-9">
-          <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
+          <svg
+            className="w-3.5 h-3.5 text-slate-400 shrink-0"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"
+            />
           </svg>
           <input
             value={mainTab === "chats" ? search : friendSearch}
@@ -271,7 +313,9 @@ export default function Sidebar() {
                 setFriendSearch(val);
               }
             }}
-            placeholder={mainTab === "chats" ? "Search people…" : "Search to add friends…"}
+            placeholder={
+              mainTab === "chats" ? "Search people…" : "Search to add friends…"
+            }
             className="flex-1 bg-transparent text-xs text-slate-700 placeholder:text-slate-400 outline-none border-none min-w-0"
           />
           {(mainTab === "chats" ? search : friendSearch) && (
@@ -287,8 +331,18 @@ export default function Sidebar() {
               }}
               className="text-slate-400 hover:text-slate-600 shrink-0 p-0.5"
             >
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-3 h-3"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           )}
@@ -297,10 +351,20 @@ export default function Sidebar() {
 
       {/* ── Main Tabs ── */}
       <div className="flex border-b border-slate-100 shrink-0">
-        {[{ key: "chats", label: "Chats" }, { key: "friends", label: "Friends" }].map(({ key, label }) => (
+        {[
+          { key: "chats", label: "Chats" },
+          { key: "friends", label: "Friends" },
+        ].map(({ key, label }) => (
           <button
             key={key}
-            onClick={() => setMainTab(key)}
+            onClick={() => {
+              setMainTab(key);
+              // FIX: clear selectedUser when switching to Friends tab on mobile
+              // so the sidebar stays visible (sidebarHidden becomes false)
+              if (key === "friends") {
+                dispatch(setSelectedUser(null));
+              }
+            }}
             className={`flex-1 py-2.5 text-xs font-medium transition-colors border-b-2 flex items-center justify-center gap-1.5 ${
               mainTab === key
                 ? "text-blue-600 border-blue-500"
@@ -329,16 +393,30 @@ export default function Sidebar() {
             {filteredChats.length === 0 && (
               <div className="flex flex-col items-center justify-center mt-16 gap-3">
                 <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
-                  <svg className="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+                  <svg
+                    className="w-6 h-6 text-slate-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"
+                    />
                   </svg>
                 </div>
                 <div className="text-center">
                   <p className="text-sm text-slate-500">
-                    {search.trim() ? `No results for "${search}"` : "No conversations yet"}
+                    {search.trim()
+                      ? `No results for "${search}"`
+                      : "No conversations yet"}
                   </p>
                   <p className="text-xs text-slate-400 mt-1">
-                    {search.trim() ? "Try a different name" : "Add friends to start chatting"}
+                    {search.trim()
+                      ? "Try a different name"
+                      : "Add friends to start chatting"}
                   </p>
                 </div>
               </div>
@@ -368,7 +446,9 @@ export default function Sidebar() {
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-0.5">
-                      <span className={`text-sm font-medium truncate ${isActive ? "text-blue-700" : "text-slate-800"}`}>
+                      <span
+                        className={`text-sm font-medium truncate ${isActive ? "text-blue-700" : "text-slate-800"}`}
+                      >
                         {chat.userName || chat.name}
                       </span>
                       <span className="text-[10px] text-slate-400 shrink-0 ml-2">
@@ -396,7 +476,10 @@ export default function Sidebar() {
         <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
           {/* Sub-tabs */}
           <div className="flex gap-2 px-4 py-3 border-b border-slate-100 shrink-0">
-            {[{ key: "add", label: "Add people" }, { key: "pending", label: "Pending" }].map(({ key, label }) => (
+            {[
+              { key: "add", label: "Add people" },
+              { key: "pending", label: "Pending" },
+            ].map(({ key, label }) => (
               <button
                 key={key}
                 onClick={() => setFriendTab(key)}
@@ -422,20 +505,34 @@ export default function Sidebar() {
               {!friendSearch.trim() && (
                 <div className="flex flex-col items-center justify-center mt-12 gap-3">
                   <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
-                    <svg className="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+                    <svg
+                      className="w-6 h-6 text-slate-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={1.5}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z"
+                      />
                     </svg>
                   </div>
                   <div className="text-center">
                     <p className="text-sm text-slate-500">Find people</p>
-                    <p className="text-xs text-slate-400 mt-1">Search by name or username</p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Search by name or username
+                    </p>
                   </div>
                 </div>
               )}
               {friendSearch.trim() && searchResults.length === 0 && (
                 <div className="flex flex-col items-center justify-center mt-12 gap-2">
                   <p className="text-sm text-slate-500">No users found</p>
-                  <p className="text-xs text-slate-400">Try a different search</p>
+                  <p className="text-xs text-slate-400">
+                    Try a different search
+                  </p>
                 </div>
               )}
               {searchResults.map((user) => {
@@ -446,7 +543,11 @@ export default function Sidebar() {
                     key={user._id}
                     className="flex items-center gap-3 px-3 py-3 rounded-xl border border-slate-100 mb-1.5 bg-white hover:border-slate-200 transition-colors"
                   >
-                    <Avatar id={user._id} image={user.image} name={user.userName || user.name} />
+                    <Avatar
+                      id={user._id}
+                      image={user.image}
+                      name={user.userName || user.name}
+                    />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-slate-800 truncate">
                         {user.userName || user.name}
@@ -478,13 +579,27 @@ export default function Sidebar() {
               {pendingRequests.length === 0 && (
                 <div className="flex flex-col items-center justify-center mt-12 gap-3">
                   <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
-                    <svg className="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                    <svg
+                      className="w-6 h-6 text-slate-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={1.5}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"
+                      />
                     </svg>
                   </div>
                   <div className="text-center">
-                    <p className="text-sm text-slate-500">No pending requests</p>
-                    <p className="text-xs text-slate-400 mt-1">You're all caught up</p>
+                    <p className="text-sm text-slate-500">
+                      No pending requests
+                    </p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      You're all caught up
+                    </p>
                   </div>
                 </div>
               )}
@@ -496,12 +611,18 @@ export default function Sidebar() {
                     key={req._id}
                     className="flex items-center gap-3 px-3 py-3 rounded-xl border border-slate-100 mb-1.5 bg-white"
                   >
-                    <Avatar id={sender._id} image={sender.image} name={sender.userName || sender.name} />
+                    <Avatar
+                      id={sender._id}
+                      image={sender.image}
+                      name={sender.userName || sender.name}
+                    />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-slate-800 truncate">
                         {sender.userName || sender.name}
                       </p>
-                      <p className="text-[11px] text-slate-400">wants to connect</p>
+                      <p className="text-[11px] text-slate-400">
+                        wants to connect
+                      </p>
                     </div>
                     <div className="flex gap-2 shrink-0">
                       <button
@@ -510,8 +631,18 @@ export default function Sidebar() {
                         className="w-8 h-8 rounded-lg bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 flex items-center justify-center text-white transition-colors active:scale-95"
                         title="Accept"
                       >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2.5}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M4.5 12.75l6 6 9-13.5"
+                          />
                         </svg>
                       </button>
                       <button
@@ -520,8 +651,18 @@ export default function Sidebar() {
                         className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-red-50 hover:text-red-500 disabled:opacity-40 flex items-center justify-center text-slate-400 transition-colors active:scale-95"
                         title="Decline"
                       >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2.5}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M6 18L18 6M6 6l12 12"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -539,15 +680,27 @@ export default function Sidebar() {
           onClick={handleLogout}
           className="flex items-center gap-2 text-xs text-slate-400 hover:text-red-500 transition-colors w-full rounded-xl px-3 py-2 hover:bg-red-50 group"
         >
-          <svg className="w-4 h-4 shrink-0 group-hover:rotate-12 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+          <svg
+            className="w-4 h-4 shrink-0 group-hover:rotate-12 transition-transform"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
+            />
           </svg>
           Log out
         </button>
         <div className="flex items-center gap-2 px-1 mt-1">
           <div className="flex-1 h-px bg-slate-100" />
-          <p className="text-[10px] text-slate-300 select-none whitespace-nowrap">
-            © {new Date().getFullYear()} <span className="text-slate-400 font-medium">Vijay Rana</span>
+          <p className="text-[11px] text-slate-400 text-center">
+            © {new Date().getFullYear()}{" "}
+            <span className="font-semibold">Vijay Rana</span>. All Rights
+            Reserved.
           </p>
           <div className="flex-1 h-px bg-slate-100" />
         </div>
