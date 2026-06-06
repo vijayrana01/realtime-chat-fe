@@ -22,12 +22,12 @@ const initials = (name) =>
     .slice(0, 2) || "?";
 
 const PALETTES = [
-  "bg-purple-50 text-purple-800",
-  "bg-teal-50 text-teal-800",
-  "bg-amber-50 text-amber-800",
-  "bg-pink-50 text-pink-800",
-  "bg-sky-50 text-sky-800",
-  "bg-orange-50 text-orange-800",
+  { bg: "rgba(167,139,250,0.2)", text: "#c4b5fd" },
+  { bg: "rgba(96,165,250,0.2)", text: "#93c5fd" },
+  { bg: "rgba(52,211,153,0.2)", text: "#6ee7b7" },
+  { bg: "rgba(251,191,36,0.2)", text: "#fde68a" },
+  { bg: "rgba(249,115,22,0.2)", text: "#fdba74" },
+  { bg: "rgba(236,72,153,0.2)", text: "#f9a8d4" },
 ];
 const colorFor = (id) => PALETTES[(id?.charCodeAt(0) ?? 0) % PALETTES.length];
 
@@ -44,10 +44,12 @@ const formatTime = (dateStr) => {
 };
 
 function Avatar({ id, image, name, online = false }) {
+  const palette = colorFor(id);
   return (
     <div className="relative shrink-0">
       <div
-        className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-medium overflow-hidden ${colorFor(id)}`}
+        className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-semibold overflow-hidden"
+        style={{ background: palette.bg, color: palette.text }}
       >
         {image ? (
           <img
@@ -60,7 +62,10 @@ function Avatar({ id, image, name, online = false }) {
         )}
       </div>
       {online && (
-        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white" />
+        <span
+          className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2"
+          style={{ background: "#34d399", borderColor: "#1a1a2e" }}
+        />
       )}
     </div>
   );
@@ -96,7 +101,6 @@ export default function Sidebar() {
     }
   };
 
-  // ── debounced friend search ────────────────────────────
   useEffect(() => {
     if (!friendSearch.trim()) {
       setSearchResults([]);
@@ -116,7 +120,6 @@ export default function Sidebar() {
     return () => clearTimeout(t);
   }, [friendSearch]);
 
-  // ── debounced chat search ──────────────────────────────
   useEffect(() => {
     if (!search.trim()) {
       dispatch(setSearchData([]));
@@ -198,29 +201,29 @@ export default function Sidebar() {
     }
   };
 
-  // ── FIX: sidebar hides on mobile ONLY when a chat is open (chats tab) ──────
-  // Previously: `selectedUser ? "hidden lg:flex" : "flex"` — this hid the
-  // entire sidebar (including the Friends tab) whenever any user was selected,
-  // even if the user had switched to the Friends panel.
   const sidebarHidden = selectedUser && mainTab === "chats";
+  const myPalette = colorFor(userData?._id);
 
   return (
     <div
-      className={`
-        relative flex flex-col bg-white border-r border-slate-100
-        w-full h-full min-h-0
-        lg:w-[20%] lg:min-w-[300px] lg:max-w-[300px]
-        ${sidebarHidden ? "hidden lg:flex" : "flex"}
-      `}
+      className={`relative flex flex-col w-full h-full min-h-0 lg:w-[20%] lg:min-w-[300px] lg:max-w-[300px] border-r ${sidebarHidden ? "hidden lg:flex" : "flex"}`}
+      style={{
+        background: "linear-gradient(180deg, #0f0c29 0%, #1a1540 100%)",
+        borderColor: "rgba(255,255,255,0.08)",
+      }}
     >
       {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 shrink-0">
+      <div
+        className="flex items-center gap-3 px-4 py-3 shrink-0 border-b"
+        style={{ borderColor: "rgba(255,255,255,0.07)" }}
+      >
         <div
           className="relative shrink-0 cursor-pointer"
           onClick={() => navigate("/profile")}
         >
           <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium overflow-hidden ${colorFor(userData?._id)}`}
+            className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold overflow-hidden"
+            style={{ background: myPalette.bg, color: myPalette.text }}
           >
             {userData?.image ? (
               <img
@@ -232,69 +235,88 @@ export default function Sidebar() {
               initials(userData?.name || userData?.userName)
             )}
           </div>
-          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white" />
+          <span
+            className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2"
+            style={{ background: "#34d399", borderColor: "#0f0c29" }}
+          />
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-slate-800 truncate leading-tight">
+          <p
+            className="text-sm font-semibold truncate leading-tight"
+            style={{ color: "#f0f0ff" }}
+          >
             {userData?.name || userData?.userName}
           </p>
-          <p className="text-[11px] text-emerald-500 flex items-center gap-1 mt-0.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+          <p
+            className="text-[11px] flex items-center gap-1 mt-0.5"
+            style={{ color: "#34d399" }}
+          >
+            <span
+              className="w-1.5 h-1.5 rounded-full inline-block"
+              style={{ background: "#34d399" }}
+            />
             Active now
           </p>
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
-          <button
-            onClick={() => navigate("/profile")}
-            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-colors"
-            aria-label="Edit profile"
-          >
-            <svg
-              className="w-3.5 h-3.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
+          {[
+            {
+              label: "Edit profile",
+              onClick: () => navigate("/profile"),
+              path: "M16.862 3.487a2.25 2.25 0 013.182 3.182L7.5 19.213l-4 1 1-4 12.362-12.726z",
+            },
+            {
+              label: "New chat",
+              onClick: () => {},
+              path: "M12 4.5v15m7.5-7.5h-15",
+            },
+          ].map(({ label, onClick, path }) => (
+            <button
+              key={label}
+              onClick={onClick}
+              aria-label={label}
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+              style={{
+                background: "rgba(255,255,255,0.06)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                color: "rgba(200,190,255,0.6)",
+              }}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M16.862 3.487a2.25 2.25 0 013.182 3.182L7.5 19.213l-4 1 1-4 12.362-12.726z"
-              />
-            </svg>
-          </button>
-          <button
-            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-colors"
-            aria-label="New chat"
-          >
-            <svg
-              className="w-3.5 h-3.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4.5v15m7.5-7.5h-15"
-              />
-            </svg>
-          </button>
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d={path} />
+              </svg>
+            </button>
+          ))}
         </div>
       </div>
 
       {/* ── Search ── */}
-      <div className="px-4 py-2.5 border-b border-slate-100 shrink-0">
-        <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 h-9">
+      <div
+        className="px-4 py-2.5 shrink-0 border-b"
+        style={{ borderColor: "rgba(255,255,255,0.07)" }}
+      >
+        <div
+          className="flex items-center gap-2 rounded-xl px-3 h-9"
+          style={{
+            background: "rgba(255,255,255,0.06)",
+            border: "1px solid rgba(255,255,255,0.1)",
+          }}
+        >
           <svg
-            className="w-3.5 h-3.5 text-slate-400 shrink-0"
+            className="w-3.5 h-3.5 shrink-0"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
             strokeWidth={2}
+            style={{ color: "rgba(200,190,255,0.4)" }}
           >
             <path
               strokeLinecap="round"
@@ -309,14 +331,13 @@ export default function Sidebar() {
               if (mainTab === "chats") {
                 setSearch(val);
                 if (!val.trim()) dispatch(setSearchData([]));
-              } else {
-                setFriendSearch(val);
-              }
+              } else setFriendSearch(val);
             }}
             placeholder={
               mainTab === "chats" ? "Search people…" : "Search to add friends…"
             }
-            className="flex-1 bg-transparent text-xs text-slate-700 placeholder:text-slate-400 outline-none border-none min-w-0"
+            className="flex-1 bg-transparent text-xs outline-none border-none min-w-0"
+            style={{ color: "#f0f0ff" }}
           />
           {(mainTab === "chats" ? search : friendSearch) && (
             <button
@@ -329,7 +350,8 @@ export default function Sidebar() {
                   setSearchResults([]);
                 }
               }}
-              className="text-slate-400 hover:text-slate-600 shrink-0 p-0.5"
+              className="shrink-0 p-0.5"
+              style={{ color: "rgba(200,190,255,0.5)" }}
             >
               <svg
                 className="w-3 h-3"
@@ -350,7 +372,10 @@ export default function Sidebar() {
       </div>
 
       {/* ── Main Tabs ── */}
-      <div className="flex border-b border-slate-100 shrink-0">
+      <div
+        className="flex shrink-0 border-b"
+        style={{ borderColor: "rgba(255,255,255,0.07)" }}
+      >
         {[
           { key: "chats", label: "Chats" },
           { key: "friends", label: "Friends" },
@@ -359,21 +384,21 @@ export default function Sidebar() {
             key={key}
             onClick={() => {
               setMainTab(key);
-              // FIX: clear selectedUser when switching to Friends tab on mobile
-              // so the sidebar stays visible (sidebarHidden becomes false)
-              if (key === "friends") {
-                dispatch(setSelectedUser(null));
-              }
+              if (key === "friends") dispatch(setSelectedUser(null));
             }}
-            className={`flex-1 py-2.5 text-xs font-medium transition-colors border-b-2 flex items-center justify-center gap-1.5 ${
-              mainTab === key
-                ? "text-blue-600 border-blue-500"
-                : "text-slate-400 border-transparent hover:text-slate-600"
-            }`}
+            className="flex-1 py-2.5 text-xs font-medium transition-colors border-b-2 flex items-center justify-center gap-1.5"
+            style={{
+              color: mainTab === key ? "#a78bfa" : "rgba(200,190,255,0.4)",
+              borderColor: mainTab === key ? "#a78bfa" : "transparent",
+              background: "transparent",
+            }}
           >
             {label}
             {key === "friends" && pendingRequests.length > 0 && (
-              <span className="bg-red-500 text-white text-[10px] font-medium rounded-full px-1.5 py-0.5 leading-none">
+              <span
+                className="text-white text-[10px] font-medium rounded-full px-1.5 py-0.5 leading-none"
+                style={{ background: "#ef4444" }}
+              >
                 {pendingRequests.length}
               </span>
             )}
@@ -385,20 +410,30 @@ export default function Sidebar() {
       {mainTab === "chats" && (
         <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
           {filteredChats.length > 0 && (
-            <p className="px-4 pt-3 pb-1 text-[10px] font-medium tracking-widest uppercase text-slate-400 shrink-0">
+            <p
+              className="px-4 pt-3 pb-1 text-[10px] font-medium tracking-widest uppercase shrink-0"
+              style={{ color: "rgba(200,190,255,0.35)" }}
+            >
               {search.trim() ? "Search results" : "Recent"}
             </p>
           )}
-          <div className="flex-1 overflow-y-auto px-2 pb-20 min-h-0 scrollbar-thin scrollbar-thumb-slate-200">
+          <div
+            className="flex-1 overflow-y-auto px-2 pb-20 min-h-0 scrollbar-thin"
+            style={{ scrollbarColor: "rgba(255,255,255,0.1) transparent" }}
+          >
             {filteredChats.length === 0 && (
               <div className="flex flex-col items-center justify-center mt-16 gap-3">
-                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+                <div
+                  className="w-12 h-12 rounded-full flex items-center justify-center"
+                  style={{ background: "rgba(255,255,255,0.06)" }}
+                >
                   <svg
-                    className="w-6 h-6 text-slate-400"
+                    className="w-6 h-6"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                     strokeWidth={1.5}
+                    style={{ color: "rgba(200,190,255,0.4)" }}
                   >
                     <path
                       strokeLinecap="round"
@@ -408,12 +443,18 @@ export default function Sidebar() {
                   </svg>
                 </div>
                 <div className="text-center">
-                  <p className="text-sm text-slate-500">
+                  <p
+                    className="text-sm"
+                    style={{ color: "rgba(220,220,255,0.5)" }}
+                  >
                     {search.trim()
                       ? `No results for "${search}"`
                       : "No conversations yet"}
                   </p>
-                  <p className="text-xs text-slate-400 mt-1">
+                  <p
+                    className="text-xs mt-1"
+                    style={{ color: "rgba(200,190,255,0.3)" }}
+                  >
                     {search.trim()
                       ? "Try a different name"
                       : "Add friends to start chatting"}
@@ -432,11 +473,15 @@ export default function Sidebar() {
                     dispatch(setSelectedUser(chat));
                     dispatch(resetUnread({ userId: chat._id }));
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-all mb-0.5 ${
-                    isActive
-                      ? "bg-blue-50 border border-blue-100"
-                      : "hover:bg-slate-50 border border-transparent"
-                  }`}
+                  className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-all mb-0.5"
+                  style={{
+                    background: isActive
+                      ? "rgba(167,139,250,0.15)"
+                      : "transparent",
+                    border: isActive
+                      ? "1px solid rgba(167,139,250,0.25)"
+                      : "1px solid transparent",
+                  }}
                 >
                   <Avatar
                     id={chat._id}
@@ -447,20 +492,30 @@ export default function Sidebar() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-0.5">
                       <span
-                        className={`text-sm font-medium truncate ${isActive ? "text-blue-700" : "text-slate-800"}`}
+                        className="text-sm font-medium truncate"
+                        style={{ color: isActive ? "#c4b5fd" : "#f0f0ff" }}
                       >
                         {chat.userName || chat.name}
                       </span>
-                      <span className="text-[10px] text-slate-400 shrink-0 ml-2">
+                      <span
+                        className="text-[10px] shrink-0 ml-2"
+                        style={{ color: "rgba(200,190,255,0.4)" }}
+                      >
                         {formatTime(chat.lastMessageTime)}
                       </span>
                     </div>
-                    <p className="text-[11px] truncate text-slate-400">
+                    <p
+                      className="text-[11px] truncate"
+                      style={{ color: "rgba(200,190,255,0.4)" }}
+                    >
                       {chat.lastMessage || "No messages yet"}
                     </p>
                   </div>
                   {chat.unread > 0 && (
-                    <span className="shrink-0 bg-blue-500 text-white text-[10px] font-medium rounded-full w-5 h-5 flex items-center justify-center">
+                    <span
+                      className="shrink-0 text-white text-[10px] font-medium rounded-full w-5 h-5 flex items-center justify-center"
+                      style={{ background: "#7c3aed" }}
+                    >
                       {chat.unread > 9 ? "9+" : chat.unread}
                     </span>
                   )}
@@ -474,8 +529,10 @@ export default function Sidebar() {
       {/* ════════ FRIENDS PANEL ════════ */}
       {mainTab === "friends" && (
         <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
-          {/* Sub-tabs */}
-          <div className="flex gap-2 px-4 py-3 border-b border-slate-100 shrink-0">
+          <div
+            className="flex gap-2 px-4 py-3 shrink-0 border-b"
+            style={{ borderColor: "rgba(255,255,255,0.07)" }}
+          >
             {[
               { key: "add", label: "Add people" },
               { key: "pending", label: "Pending" },
@@ -483,15 +540,26 @@ export default function Sidebar() {
               <button
                 key={key}
                 onClick={() => setFriendTab(key)}
-                className={`flex-1 py-2 text-xs font-medium rounded-xl border transition-all flex items-center justify-center gap-1.5 ${
-                  friendTab === key
-                    ? "bg-blue-50 border-blue-200 text-blue-700"
-                    : "border-slate-200 text-slate-500 hover:bg-slate-50"
-                }`}
+                className="flex-1 py-2 text-xs font-medium rounded-xl border transition-all flex items-center justify-center gap-1.5"
+                style={{
+                  background:
+                    friendTab === key
+                      ? "rgba(167,139,250,0.15)"
+                      : "transparent",
+                  borderColor:
+                    friendTab === key
+                      ? "rgba(167,139,250,0.35)"
+                      : "rgba(255,255,255,0.1)",
+                  color:
+                    friendTab === key ? "#c4b5fd" : "rgba(200,190,255,0.45)",
+                }}
               >
                 {label}
                 {key === "pending" && pendingRequests.length > 0 && (
-                  <span className="bg-red-500 text-white text-[10px] font-medium rounded-full px-1.5 py-0.5 leading-none">
+                  <span
+                    className="text-white text-[10px] font-medium rounded-full px-1.5 py-0.5 leading-none"
+                    style={{ background: "#ef4444" }}
+                  >
                     {pendingRequests.length}
                   </span>
                 )}
@@ -499,18 +567,22 @@ export default function Sidebar() {
             ))}
           </div>
 
-          {/* ── Add tab ── */}
+          {/* Add tab */}
           {friendTab === "add" && (
-            <div className="flex-1 overflow-y-auto min-h-0 px-2 py-2 pb-24 scrollbar-thin scrollbar-thumb-slate-200">
+            <div className="flex-1 overflow-y-auto min-h-0 px-2 py-2 pb-24">
               {!friendSearch.trim() && (
                 <div className="flex flex-col items-center justify-center mt-12 gap-3">
-                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+                  <div
+                    className="w-12 h-12 rounded-full flex items-center justify-center"
+                    style={{ background: "rgba(255,255,255,0.06)" }}
+                  >
                     <svg
-                      className="w-6 h-6 text-slate-400"
+                      className="w-6 h-6"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                       strokeWidth={1.5}
+                      style={{ color: "rgba(200,190,255,0.4)" }}
                     >
                       <path
                         strokeLinecap="round"
@@ -520,8 +592,16 @@ export default function Sidebar() {
                     </svg>
                   </div>
                   <div className="text-center">
-                    <p className="text-sm text-slate-500">Find people</p>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p
+                      className="text-sm"
+                      style={{ color: "rgba(220,220,255,0.5)" }}
+                    >
+                      Find people
+                    </p>
+                    <p
+                      className="text-xs mt-1"
+                      style={{ color: "rgba(200,190,255,0.3)" }}
+                    >
                       Search by name or username
                     </p>
                   </div>
@@ -529,8 +609,16 @@ export default function Sidebar() {
               )}
               {friendSearch.trim() && searchResults.length === 0 && (
                 <div className="flex flex-col items-center justify-center mt-12 gap-2">
-                  <p className="text-sm text-slate-500">No users found</p>
-                  <p className="text-xs text-slate-400">
+                  <p
+                    className="text-sm"
+                    style={{ color: "rgba(220,220,255,0.5)" }}
+                  >
+                    No users found
+                  </p>
+                  <p
+                    className="text-xs"
+                    style={{ color: "rgba(200,190,255,0.3)" }}
+                  >
                     Try a different search
                   </p>
                 </div>
@@ -541,7 +629,11 @@ export default function Sidebar() {
                 return (
                   <div
                     key={user._id}
-                    className="flex items-center gap-3 px-3 py-3 rounded-xl border border-slate-100 mb-1.5 bg-white hover:border-slate-200 transition-colors"
+                    className="flex items-center gap-3 px-3 py-3 rounded-xl mb-1.5 transition-colors"
+                    style={{
+                      background: "rgba(255,255,255,0.05)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                    }}
                   >
                     <Avatar
                       id={user._id}
@@ -549,21 +641,33 @@ export default function Sidebar() {
                       name={user.userName || user.name}
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-800 truncate">
+                      <p
+                        className="text-sm font-medium truncate"
+                        style={{ color: "#f0f0ff" }}
+                      >
                         {user.userName || user.name}
                       </p>
-                      <p className="text-[11px] text-slate-400">
+                      <p
+                        className="text-[11px]"
+                        style={{ color: "rgba(200,190,255,0.4)" }}
+                      >
                         @{(user.userName || user.name)?.toLowerCase()}
                       </p>
                     </div>
                     <button
                       disabled={sent}
                       onClick={() => sendFriendRequest(user._id)}
-                      className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-all shrink-0 ${
-                        sent
-                          ? "border-slate-200 text-slate-400 bg-slate-50 cursor-not-allowed"
-                          : "border-blue-300 text-blue-600 hover:bg-blue-50 active:scale-95"
-                      }`}
+                      className="text-xs px-3 py-1.5 rounded-lg border font-medium transition-all shrink-0"
+                      style={{
+                        borderColor: sent
+                          ? "rgba(255,255,255,0.1)"
+                          : "rgba(167,139,250,0.4)",
+                        color: sent ? "rgba(200,190,255,0.3)" : "#c4b5fd",
+                        background: sent
+                          ? "rgba(255,255,255,0.04)"
+                          : "rgba(167,139,250,0.1)",
+                        cursor: sent ? "not-allowed" : "pointer",
+                      }}
                     >
                       {sent ? "✓ Sent" : "+ Add"}
                     </button>
@@ -573,18 +677,22 @@ export default function Sidebar() {
             </div>
           )}
 
-          {/* ── Pending tab ── */}
+          {/* Pending tab */}
           {friendTab === "pending" && (
-            <div className="flex-1 overflow-y-auto min-h-0 px-2 py-2 pb-24 scrollbar-thin scrollbar-thumb-slate-200">
+            <div className="flex-1 overflow-y-auto min-h-0 px-2 py-2 pb-24">
               {pendingRequests.length === 0 && (
                 <div className="flex flex-col items-center justify-center mt-12 gap-3">
-                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+                  <div
+                    className="w-12 h-12 rounded-full flex items-center justify-center"
+                    style={{ background: "rgba(255,255,255,0.06)" }}
+                  >
                     <svg
-                      className="w-6 h-6 text-slate-400"
+                      className="w-6 h-6"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                       strokeWidth={1.5}
+                      style={{ color: "rgba(200,190,255,0.4)" }}
                     >
                       <path
                         strokeLinecap="round"
@@ -594,10 +702,16 @@ export default function Sidebar() {
                     </svg>
                   </div>
                   <div className="text-center">
-                    <p className="text-sm text-slate-500">
+                    <p
+                      className="text-sm"
+                      style={{ color: "rgba(220,220,255,0.5)" }}
+                    >
                       No pending requests
                     </p>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p
+                      className="text-xs mt-1"
+                      style={{ color: "rgba(200,190,255,0.3)" }}
+                    >
                       You're all caught up
                     </p>
                   </div>
@@ -609,7 +723,11 @@ export default function Sidebar() {
                 return (
                   <div
                     key={req._id}
-                    className="flex items-center gap-3 px-3 py-3 rounded-xl border border-slate-100 mb-1.5 bg-white"
+                    className="flex items-center gap-3 px-3 py-3 rounded-xl mb-1.5"
+                    style={{
+                      background: "rgba(255,255,255,0.05)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                    }}
                   >
                     <Avatar
                       id={sender._id}
@@ -617,10 +735,16 @@ export default function Sidebar() {
                       name={sender.userName || sender.name}
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-800 truncate">
+                      <p
+                        className="text-sm font-medium truncate"
+                        style={{ color: "#f0f0ff" }}
+                      >
                         {sender.userName || sender.name}
                       </p>
-                      <p className="text-[11px] text-slate-400">
+                      <p
+                        className="text-[11px]"
+                        style={{ color: "rgba(200,190,255,0.4)" }}
+                      >
                         wants to connect
                       </p>
                     </div>
@@ -628,7 +752,8 @@ export default function Sidebar() {
                       <button
                         disabled={busy}
                         onClick={() => acceptRequest(req._id)}
-                        className="w-8 h-8 rounded-lg bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 flex items-center justify-center text-white transition-colors active:scale-95"
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-white transition-colors active:scale-95 disabled:opacity-40"
+                        style={{ background: "#059669" }}
                         title="Accept"
                       >
                         <svg
@@ -648,7 +773,11 @@ export default function Sidebar() {
                       <button
                         disabled={busy}
                         onClick={() => declineRequest(req._id)}
-                        className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-red-50 hover:text-red-500 disabled:opacity-40 flex items-center justify-center text-slate-400 transition-colors active:scale-95"
+                        className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors active:scale-95 disabled:opacity-40"
+                        style={{
+                          background: "rgba(255,255,255,0.06)",
+                          color: "rgba(200,190,255,0.5)",
+                        }}
                         title="Decline"
                       >
                         <svg
@@ -675,13 +804,29 @@ export default function Sidebar() {
       )}
 
       {/* ── Footer / Logout ── */}
-      <div className="absolute bottom-0 left-0 w-full border-t border-slate-100 bg-white/80 backdrop-blur-sm px-4 pt-2 pb-3 shrink-0">
+      <div
+        className="absolute bottom-0 left-0 w-full px-4 pt-2 pb-3 shrink-0 border-t"
+        style={{
+          background: "rgba(15,12,41,0.9)",
+          backdropFilter: "blur(12px)",
+          borderColor: "rgba(255,255,255,0.07)",
+        }}
+      >
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2 text-xs text-slate-400 hover:text-red-500 transition-colors w-full rounded-xl px-3 py-2 hover:bg-red-50 group"
+          className="flex items-center gap-2 text-xs w-full rounded-xl px-3 py-2 transition-colors group"
+          style={{ color: "rgba(200,190,255,0.45)" }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = "#f87171";
+            e.currentTarget.style.background = "rgba(239,68,68,0.08)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = "rgba(200,190,255,0.45)";
+            e.currentTarget.style.background = "transparent";
+          }}
         >
           <svg
-            className="w-4 h-4 shrink-0 group-hover:rotate-12 transition-transform"
+            className="w-4 h-4 shrink-0"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -696,13 +841,26 @@ export default function Sidebar() {
           Log out
         </button>
         <div className="flex items-center gap-2 px-1 mt-1">
-          <div className="flex-1 h-px bg-slate-100" />
-          <p className="text-[11px] text-slate-400 text-center">
+          <div
+            className="flex-1 h-px"
+            style={{ background: "rgba(255,255,255,0.06)" }}
+          />
+          <p
+            className="text-[11px] text-center"
+            style={{ color: "rgba(200,190,255,0.3)" }}
+          >
             © {new Date().getFullYear()}{" "}
-            <span className="font-semibold">Vijay Rana</span>. All Rights
-            Reserved.
+            <span
+              className="font-semibold"
+              style={{ color: "rgba(200,190,255,0.5)" }}
+            >
+              Vijay Rana
+            </span>
           </p>
-          <div className="flex-1 h-px bg-slate-100" />
+          <div
+            className="flex-1 h-px"
+            style={{ background: "rgba(255,255,255,0.06)" }}
+          />
         </div>
       </div>
     </div>

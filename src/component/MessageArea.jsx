@@ -1,13 +1,16 @@
 import { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setSelectedUser } from "../Redux/userSlice";
+import {
+  setSelectedUser,
+  updateLastMessage,
+  incrementUnread,
+} from "../Redux/userSlice";
 import EmojiPicker from "emoji-picker-react";
 import ReceiverMessage from "./RecieverMessage";
 import SenderMessage from "./SenderMessage";
 import axios from "axios";
 import { setMessages } from "../Redux/messagesSlice";
-import { Socket } from "socket.io-client";
-import { updateLastMessage, incrementUnread } from "../Redux/userSlice";
+
 export default function MessageArea() {
   const [emojisOpen, setEmojisOpen] = useState(false);
   const [text, setText] = useState("");
@@ -30,29 +33,19 @@ export default function MessageArea() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // ✅ Real-time incoming message
-useEffect(() => {
-  if (!socket) return;
-
-  socket.on("newMessage", (mess) => {
-    dispatch(setMessages([...(Array.isArray(messages) ? messages : []), mess]));
-
-    // ✅ normalize sender — could be object or string
-    const senderId = mess.sender?._id ?? mess.sender;
-
-    dispatch(updateLastMessage({
-      senderId: senderId,
-      message: mess.message,
-    }));
-
-    // ✅ compare normalized string IDs
-    if (senderId !== selectedUser?._id) {
-      dispatch(incrementUnread({ senderId: senderId }));
-    }
-  });
-
-  return () => socket.off("newMessage");
-}, [messages, socket, selectedUser]);
+  useEffect(() => {
+    if (!socket) return;
+    socket.on("newMessage", (mess) => {
+      dispatch(
+        setMessages([...(Array.isArray(messages) ? messages : []), mess]),
+      );
+      const senderId = mess.sender?._id ?? mess.sender;
+      dispatch(updateLastMessage({ senderId, message: mess.message }));
+      if (senderId !== selectedUser?._id)
+        dispatch(incrementUnread({ senderId }));
+    });
+    return () => socket.off("newMessage");
+  }, [messages, socket, selectedUser]);
 
   const handleSend = async () => {
     if (!text.trim() && !backEndImage) return;
@@ -112,14 +105,27 @@ useEffect(() => {
 
   if (!selectedUser) {
     return (
-      <div className="hidden lg:flex lg:w-[85%] h-full flex-col items-center justify-center bg-slate-50 gap-4">
-        <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200 flex items-center justify-center">
+      <div
+        className="hidden lg:flex lg:flex-1 h-full flex-col items-center justify-center gap-4"
+        style={{
+          background:
+            "linear-gradient(135deg, #0f0c29 0%, #1a1540 60%, #24243e 100%)",
+        }}
+      >
+        <div
+          className="w-16 h-16 rounded-2xl flex items-center justify-center"
+          style={{
+            background: "rgba(255,255,255,0.06)",
+            border: "1px solid rgba(255,255,255,0.1)",
+          }}
+        >
           <svg
-            className="w-7 h-7 text-slate-300"
+            className="w-7 h-7"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
             strokeWidth={1.5}
+            style={{ color: "rgba(167,139,250,0.6)" }}
           >
             <path
               strokeLinecap="round"
@@ -129,10 +135,13 @@ useEffect(() => {
           </svg>
         </div>
         <div className="text-center">
-          <p className="text-lg font-medium text-slate-700">
+          <p className="text-lg font-semibold" style={{ color: "#f0f0ff" }}>
             Welcome to NexTalk
           </p>
-          <p className="text-xs text-slate-400 mt-1">
+          <p
+            className="text-xs mt-1"
+            style={{ color: "rgba(200,190,255,0.4)" }}
+          >
             Choose a chat from the sidebar to start messaging
           </p>
         </div>
@@ -141,14 +150,28 @@ useEffect(() => {
   }
 
   return (
-   <div className="w-full lg:flex-1 h-full flex flex-col bg-white">
-
+    <div
+      className="w-full lg:flex-1 h-full flex flex-col"
+      style={{
+        background: "linear-gradient(180deg, #0f0c29 0%, #1a1540 100%)",
+      }}
+    >
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-200">
-        {/* Back — mobile only */}
+      <div
+        className="flex items-center gap-3 px-4 py-3 shrink-0 border-b"
+        style={{
+          background: "rgba(255,255,255,0.04)",
+          borderColor: "rgba(255,255,255,0.08)",
+          backdropFilter: "blur(12px)",
+        }}
+      >
         <button
           onClick={() => dispatch(setSelectedUser(null))}
-          className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 transition-colors shrink-0"
+          className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg transition-colors shrink-0"
+          style={{
+            color: "rgba(200,190,255,0.6)",
+            background: "rgba(255,255,255,0.06)",
+          }}
           aria-label="Back"
         >
           <svg
@@ -166,9 +189,11 @@ useEffect(() => {
           </svg>
         </button>
 
-        {/* Avatar + online dot */}
         <div className="relative shrink-0">
-          <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-800 text-sm font-medium overflow-hidden">
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold overflow-hidden"
+            style={{ background: "rgba(167,139,250,0.2)", color: "#c4b5fd" }}
+          >
             {selectedUser?.image ? (
               <img
                 src={selectedUser.image}
@@ -180,21 +205,35 @@ useEffect(() => {
             )}
           </div>
           {isOnline && (
-            <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white" />
+            <span
+              className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2"
+              style={{ background: "#34d399", borderColor: "#0f0c29" }}
+            />
           )}
         </div>
 
         <div className="flex-1">
-          <p className="text-sm font-medium text-slate-800">
+          <p className="text-sm font-semibold" style={{ color: "#f0f0ff" }}>
             {selectedUser?.userName || "Unknown"}
           </p>
           {isOnline ? (
-            <p className="text-[11px] text-emerald-500 flex items-center gap-1 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />{" "}
+            <p
+              className="text-[11px] flex items-center gap-1 mt-0.5"
+              style={{ color: "#34d399" }}
+            >
+              <span
+                className="w-1.5 h-1.5 rounded-full inline-block"
+                style={{ background: "#34d399" }}
+              />{" "}
               Online
             </p>
           ) : (
-            <p className="text-[11px] text-slate-400 mt-0.5">Offline</p>
+            <p
+              className="text-[11px] mt-0.5"
+              style={{ color: "rgba(200,190,255,0.35)" }}
+            >
+              Offline
+            </p>
           )}
         </div>
 
@@ -216,7 +255,12 @@ useEffect(() => {
             <button
               key={label}
               aria-label={label}
-              className="w-8 h-8 rounded-lg border border-slate-200 bg-transparent flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-colors"
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+              style={{
+                background: "rgba(255,255,255,0.06)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                color: "rgba(200,190,255,0.55)",
+              }}
             >
               <svg
                 className="w-4 h-4"
@@ -233,9 +277,15 @@ useEffect(() => {
       </div>
 
       {/* Messages */}
-      <div className="relative flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-2.5 bg-slate-50 scrollbar-thin scrollbar-thumb-slate-200">
+      <div
+        className="relative flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-2.5 scrollbar-thin"
+        style={{ scrollbarColor: "rgba(255,255,255,0.08) transparent" }}
+      >
         {messages?.length === 0 && (
-          <p className="text-center text-xs text-slate-400 mt-8">
+          <p
+            className="text-center text-xs mt-8"
+            style={{ color: "rgba(200,190,255,0.35)" }}
+          >
             No messages yet. Say hello!
           </p>
         )}
@@ -256,25 +306,38 @@ useEffect(() => {
 
         {emojisOpen && (
           <div className="absolute bottom-2 right-4 z-50">
-            <EmojiPicker width={280} height={350} onEmojiClick={onEmojiClick} />
+            <EmojiPicker
+              width={280}
+              height={350}
+              onEmojiClick={onEmojiClick}
+              theme="dark"
+            />
           </div>
         )}
       </div>
 
       {/* Image preview */}
       {frontEndImage && (
-        <div className="px-4 py-2 border-t border-slate-100 bg-white flex items-center gap-3">
+        <div
+          className="px-4 py-2 flex items-center gap-3 shrink-0 border-t"
+          style={{
+            background: "rgba(255,255,255,0.04)",
+            borderColor: "rgba(255,255,255,0.08)",
+          }}
+        >
           <div className="relative w-14 h-14 shrink-0">
             <img
               src={frontEndImage}
-              className="w-full h-full object-cover rounded-xl border border-slate-200"
+              className="w-full h-full object-cover rounded-xl"
+              style={{ border: "1px solid rgba(255,255,255,0.1)" }}
             />
             <button
               onClick={() => {
                 setBackEndImage(null);
                 setFrontEndImage(null);
               }}
-              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-slate-700 text-white flex items-center justify-center"
+              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-white"
+              style={{ background: "#7c3aed" }}
               aria-label="Remove"
             >
               <svg
@@ -292,12 +355,21 @@ useEffect(() => {
               </svg>
             </button>
           </div>
-          <p className="text-xs text-slate-400">Image ready to send</p>
+          <p className="text-xs" style={{ color: "rgba(200,190,255,0.4)" }}>
+            Image ready to send
+          </p>
         </div>
       )}
 
       {/* Input bar */}
-      <div className="px-4 py-3 border-t border-slate-200 bg-white flex items-center gap-2.5">
+      <div
+        className="px-4 py-3 flex items-center gap-2.5 shrink-0 border-t"
+        style={{
+          background: "rgba(255,255,255,0.04)",
+          borderColor: "rgba(255,255,255,0.08)",
+          backdropFilter: "blur(12px)",
+        }}
+      >
         <input
           ref={fileInputRef}
           type="file"
@@ -306,10 +378,22 @@ useEffect(() => {
           onChange={handleImageChange}
         />
 
-        <div className="flex-1 flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5">
+        <div
+          className="flex-1 flex items-center gap-2 rounded-full px-4 py-2.5"
+          style={{
+            background: "rgba(255,255,255,0.07)",
+            border: "1px solid rgba(255,255,255,0.1)",
+          }}
+        >
           <button
             onClick={() => fileInputRef.current.click()}
-            className="text-slate-400 hover:text-slate-600 transition-colors shrink-0"
+            className="transition-colors shrink-0"
+            style={{
+              color: "rgba(200,190,255,0.45)",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+            }}
             aria-label="Attach"
           >
             <svg
@@ -332,12 +416,19 @@ useEffect(() => {
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKey}
             placeholder="Type a message…"
-            className="flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 outline-none border-none"
+            className="flex-1 bg-transparent text-sm outline-none border-none"
+            style={{ color: "#f0f0ff" }}
           />
 
           <button
             onClick={() => setEmojisOpen((o) => !o)}
-            className="text-slate-400 hover:text-slate-600 transition-colors shrink-0"
+            className="transition-colors shrink-0"
+            style={{
+              color: "rgba(200,190,255,0.45)",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+            }}
             aria-label="Emoji"
           >
             <svg
@@ -359,7 +450,8 @@ useEffect(() => {
         <button
           onClick={handleSend}
           disabled={(!text.trim() && !backEndImage) || sending}
-          className="w-9 h-9 rounded-full bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center text-white transition-colors shrink-0"
+          className="w-9 h-9 rounded-full flex items-center justify-center text-white transition-colors shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{ background: "linear-gradient(135deg, #7c3aed, #4f87e8)" }}
           aria-label="Send"
         >
           {sending ? (
