@@ -4,10 +4,11 @@ import axios from "axios";
 import { useDispatch } from "react-redux";
 import { setSelectedUser, setUserData } from "../Redux/userSlice";
 
-const fieldStyle = (name) =>
-  focused === name
-    ? `${fieldBase} border-[rgba(167,139,250,0.7)] bg-[rgba(255,255,255,0.08)]`
-    : `${fieldBase} border-white/10 bg-[rgba(255,255,255,0.06)] hover:border-white/20`;
+const inputStyle = {
+  WebkitBoxShadow: "0 0 0px 1000px transparent inset",
+  WebkitTextFillColor: "#f0f0ff",
+  transition: "background-color 5000s ease-in-out 0s",
+};
 
 export default function NexTalkLogin() {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -47,8 +48,8 @@ export default function NexTalkLogin() {
     "flex items-center gap-3 px-4 h-[46px] rounded-xl border transition-all duration-150";
   const fieldStyle = (name) =>
     focused === name
-      ? `${fieldBase} border-[rgba(167,139,250,0.7)] bg-white/10`
-      : `${fieldBase} border-white/10 bg-white/[0.07] hover:border-white/20`;
+      ? `${fieldBase} border-[rgba(167,139,250,0.7)] bg-[rgba(255,255,255,0.09)]`
+      : `${fieldBase} border-[rgba(255,255,255,0.11)] bg-[rgba(255,255,255,0.06)] hover:border-[rgba(255,255,255,0.2)]`;
 
   return (
     <div
@@ -328,12 +329,15 @@ export default function NexTalkLogin() {
 
         {/* Footer */}
         <p
-          className="text-center text-xs mt-6 cursor-pointer"
+          className="text-center text-xs mt-6"
           style={{ color: "rgba(220,220,255,0.45)" }}
-          onClick={() => navigate("/signup")}
         >
           Don't have an account?{" "}
-          <span className="transition-colors" style={{ color: "#a78bfa" }}>
+          <span
+            className="cursor-pointer transition-colors"
+            style={{ color: "#a78bfa" }}
+            onClick={() => navigate("/signup")}
+          >
             Sign up
           </span>
         </p>
