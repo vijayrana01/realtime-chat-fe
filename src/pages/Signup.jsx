@@ -4,6 +4,12 @@ import axios from "axios";
 import { useDispatch } from "react-redux";
 import { setUserData } from "../Redux/userSlice";
 
+const inputStyle = {
+  WebkitBoxShadow: "0 0 0px 1000px transparent inset",
+  WebkitTextFillColor: "#f0f0ff",
+  transition: "background-color 5000s ease-in-out 0s",
+};
+
 const StrengthBar = ({ password }) => {
   const getStrength = (p) => {
     if (!p) return 0;
@@ -41,12 +47,6 @@ const StrengthBar = ({ password }) => {
       </p>
     </div>
   );
-};
-
-const inputStyle = {
-  WebkitBoxShadow: "0 0 0px 1000px transparent inset",
-  WebkitTextFillColor: "#f0f0ff",
-  transition: "background-color 5000s ease-in-out 0s",
 };
 
 export default function NexTalkSignup() {
@@ -359,12 +359,12 @@ export default function NexTalkSignup() {
         </form>
 
         <p
-          className="text-center text-xs mt-6 cursor-pointer"
+          className="text-center text-xs mt-6"
           style={{ color: "rgba(220,220,255,0.45)" }}
         >
           Already have an account?{" "}
           <span
-            className="transition-colors"
+            className="cursor-pointer transition-colors"
             style={{ color: "#a78bfa" }}
             onClick={() => navigate("/login")}
           >
