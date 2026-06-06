@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { setUserData } from "../Redux/userSlice";
 
 const StrengthBar = ({ password }) => {
@@ -15,34 +15,27 @@ const StrengthBar = ({ password }) => {
     return s;
   };
   const strength = getStrength(password);
-  const colors = [
-    "bg-zinc-700",
-    "bg-red-500",
-    "bg-yellow-400",
-    "bg-sky-400",
-    "bg-emerald-400",
-  ];
-  const textColors = [
-    "",
-    "text-red-400",
-    "text-yellow-400",
-    "text-sky-400",
-    "text-emerald-400",
-  ];
+  const colors = ["", "#ef4444", "#facc15", "#38bdf8", "#34d399"];
+  const textColors = ["", "#f87171", "#fde047", "#7dd3fc", "#6ee7b7"];
   const labels = ["", "Weak", "Fair", "Good", "Strong"];
   if (!password) return null;
   return (
-    <div className="mt-2 px-1">
+    <div className="mt-2 px-0.5">
       <div className="flex gap-1.5">
         {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className={`h-0.5 flex-1 rounded-full transition-all duration-300 ${i <= strength ? colors[strength] : "bg-zinc-800"}`}
+            className="h-[3px] flex-1 rounded-full transition-all duration-300"
+            style={{
+              background:
+                i <= strength ? colors[strength] : "rgba(255,255,255,0.1)",
+            }}
           />
         ))}
       </div>
       <p
-        className={`text-[10px] mt-1.5 font-mono tracking-widest uppercase ${textColors[strength]}`}
+        className="text-[10px] mt-1.5 font-mono tracking-widest uppercase"
+        style={{ color: textColors[strength] }}
       >
         {labels[strength]}
       </p>
@@ -50,142 +43,149 @@ const StrengthBar = ({ password }) => {
   );
 };
 
-// FIX: shared input style — bg-transparent + autofill override via inline style
 const inputStyle = {
-  // background: "transparent",
-  WebkitBoxShadow: "0 0 0px 1000px transparent inset", // kills browser autofill white bg
-  WebkitTextFillColor: "#e4e4e7", // keeps text color on autofill
-  transition: "background-color 5000s ease-in-out 0s", // delays autofill bg switch forever
+  WebkitBoxShadow: "0 0 0px 1000px transparent inset",
+  WebkitTextFillColor: "#f0f0ff",
+  transition: "background-color 5000s ease-in-out 0s",
 };
 
 export default function NexTalkSignup() {
   const [form, setForm] = useState({ userName: "", email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [focused, setFocused] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { userData } = useSelector((state) => state.user);
-  console.log("Current user data in Signup:", userData);
+  const API_URL = import.meta.env.VITE_API_URL;
+
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  const API_URL = import.meta.env.VITE_API_URL;
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     setError("");
+    setLoading(true);
     try {
-      // Option B: remap before sending
       const result = await axios.post(
         `${API_URL}/api/auth/signup`,
-        {
-          userName: form.userName,
-          email: form.email,
-          password: form.password,
-        },
+        { userName: form.userName, email: form.email, password: form.password },
         { withCredentials: true },
       );
       dispatch(setUserData(result.data.user));
       navigate("/profile");
-      // console.log("Signup response:", result.data);
-      setSubmitted(true);
-      // ✅ Fix
     } catch (err) {
-      console.error("Signup error:", err);
       setError(
         err.response?.data?.message || "Signup failed. Please try again.",
       );
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (submitted) {
-    return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6">
-        <div className="w-full max-w-sm text-center">
-          <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto mb-6">
-            <svg
-              className="w-7 h-7 text-emerald-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold text-zinc-100 tracking-tight mb-2">
-            Account created
-          </h2>
-          <p className="text-zinc-500 text-sm mb-8">
-            Welcome aboard,{" "}
-            <span className="text-zinc-300 font-medium">{form.userName}</span>.
-          </p>
-
-          <button
-            onClick={() => {
-              setSubmitted(false);
-              setForm({ userName: "", email: "", password: "" });
-              navigate("/login");
-            }}
-            className="px-6 py-3 rounded-xl bg-emerald-400 hover:bg-emerald-500 text-zinc-900 font-semibold text-sm tracking-tight active:scale-[0.98] transition-all duration-100"
-          >
-            Login now
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const fieldWrap = (name) =>
-    `flex items-center gap-3 rounded-xl px-4 h-12 border transition-all duration-150 ${
-      focused === name
-        ? "bg-zinc-900 border-zinc-600"
-        : "bg-zinc-900/60 border-zinc-800 hover:border-zinc-700"
-    }`;
+  const fieldBase =
+    "flex items-center gap-3 px-4 h-[46px] rounded-xl border transition-all duration-150";
+  const fieldStyle = (name) =>
+    focused === name
+      ? `${fieldBase} border-[rgba(167,139,250,0.7)] bg-[rgba(255,255,255,0.09)]`
+      : `${fieldBase} border-[rgba(255,255,255,0.11)] bg-[rgba(255,255,255,0.06)] hover:border-[rgba(255,255,255,0.2)]`;
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6 font-sans">
-      <div className="w-full max-w-sm">
+    <div
+      className="min-h-screen flex items-center justify-center p-6 font-sans relative overflow-hidden"
+      style={{
+        background:
+          "linear-gradient(135deg, #0f0c29 0%, #302b63 45%, #24243e 100%)",
+      }}
+    >
+      {/* Blobs */}
+      <div
+        className="absolute top-[-80px] left-[-80px] w-80 h-80 rounded-full pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(139,92,246,0.25) 0%, transparent 70%)",
+        }}
+      />
+      <div
+        className="absolute bottom-[-60px] right-[-40px] w-64 h-64 rounded-full pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(99,179,237,0.18) 0%, transparent 70%)",
+        }}
+      />
+
+      <div
+        className="w-full max-w-sm rounded-[20px] p-9 relative z-10"
+        style={{
+          background: "rgba(255,255,255,0.07)",
+          border: "1px solid rgba(255,255,255,0.14)",
+          backdropFilter: "blur(20px)",
+        }}
+      >
         {/* Logo */}
-        <div className="flex items-center gap-3 mb-10">
-          <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center">
-            <svg
-              className="w-4 h-4 text-zinc-900"
-              viewBox="0 0 16 16"
-              fill="currentColor"
-            >
-              <path d="M8 1.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM3 6.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM13 6.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM5.5 12a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM10.5 12a1.5 1.5 0 110 3 1.5 1.5 0 010-3z" />
+        <div className="flex items-center gap-3 mb-7">
+          <div
+            className="w-[34px] h-[34px] rounded-[9px] flex items-center justify-center"
+            style={{ background: "linear-gradient(135deg, #a78bfa, #60a5fa)" }}
+          >
+            <svg width="17" height="17" viewBox="0 0 16 16" fill="#fff">
+              <circle cx="8" cy="3.5" r="1.5" />
+              <circle cx="3" cy="8" r="1.5" />
+              <circle cx="13" cy="8" r="1.5" />
+              <circle cx="5.5" cy="12.5" r="1.5" />
+              <circle cx="10.5" cy="12.5" r="1.5" />
             </svg>
           </div>
-          <span className="text-lg font-bold text-zinc-100 tracking-tight">
+          <span
+            className="text-lg font-bold tracking-tight"
+            style={{ color: "#f0f0ff" }}
+          >
             nexTalk
           </span>
         </div>
 
         {/* Heading */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-zinc-100 tracking-tight leading-tight mb-2">
-            Start talking.
-            <br />
-            <span className="text-zinc-500">Create an account.</span>
+        <div className="mb-6">
+          <h1
+            className="text-2xl font-bold tracking-tight"
+            style={{ color: "#f0f0ff" }}
+          >
+            Create your account
           </h1>
+          <p
+            className="text-[13.5px] mt-1"
+            style={{ color: "rgba(220,220,255,0.5)" }}
+          >
+            Join nexTalk and start talking today
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
+          {/* Error */}
+          {error && (
+            <div
+              className="text-sm rounded-[10px] px-3 py-2"
+              style={{
+                background: "rgba(239,68,68,0.12)",
+                border: "1px solid rgba(239,68,68,0.28)",
+                color: "#fca5a5",
+              }}
+            >
+              {error}
+            </div>
+          )}
+
           {/* Username */}
-          <div className={fieldWrap("userName")}>
+          <div className={fieldStyle("userName")}>
             <svg
-              className="w-4 h-4 text-zinc-600 shrink-0"
+              className="w-4 h-4 shrink-0"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
               strokeWidth={1.5}
+              style={{ color: "rgba(200,190,255,0.45)" }}
             >
               <path
                 strokeLinecap="round"
@@ -202,19 +202,20 @@ export default function NexTalkSignup() {
               onFocus={() => setFocused("userName")}
               onBlur={() => setFocused("")}
               style={inputStyle}
-              className="flex-1 border-none outline-none text-zinc-200 placeholder-zinc-600 text-sm"
+              className="flex-1 bg-transparent border-none outline-none text-sm"
               required
             />
           </div>
 
           {/* Email */}
-          <div className={fieldWrap("email")}>
+          <div className={fieldStyle("email")}>
             <svg
-              className="w-4 h-4 text-zinc-600 shrink-0"
+              className="w-4 h-4 shrink-0"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
               strokeWidth={1.5}
+              style={{ color: "rgba(200,190,255,0.45)" }}
             >
               <path
                 strokeLinecap="round"
@@ -231,20 +232,21 @@ export default function NexTalkSignup() {
               onFocus={() => setFocused("email")}
               onBlur={() => setFocused("")}
               style={inputStyle}
-              className="flex-1 border-none outline-none text-zinc-200 placeholder-zinc-600 text-sm"
+              className="flex-1 bg-transparent border-none outline-none text-sm"
               required
             />
           </div>
 
           {/* Password */}
           <div>
-            <div className={fieldWrap("password")}>
+            <div className={fieldStyle("password")}>
               <svg
-                className="w-4 h-4 text-zinc-600 shrink-0"
+                className="w-4 h-4 shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
                 strokeWidth={1.5}
+                style={{ color: "rgba(200,190,255,0.45)" }}
               >
                 <path
                   strokeLinecap="round"
@@ -261,14 +263,20 @@ export default function NexTalkSignup() {
                 onFocus={() => setFocused("password")}
                 onBlur={() => setFocused("")}
                 style={inputStyle}
-                className="flex-1 border-none outline-none text-zinc-200 placeholder-zinc-600 text-sm"
+                className="flex-1 bg-transparent border-none outline-none text-sm"
                 required
                 autoComplete="new-password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="text-zinc-600 hover:text-zinc-400 transition-colors shrink-0"
+                className="shrink-0 transition-colors"
+                style={{
+                  color: "rgba(200,190,255,0.45)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                }}
                 aria-label="Toggle password"
               >
                 {showPassword ? (
@@ -313,16 +321,51 @@ export default function NexTalkSignup() {
           {/* Submit */}
           <button
             type="submit"
-            className="mt-2 w-full py-3 rounded-xl bg-zinc-100 hover:bg-white text-zinc-900 font-semibold text-sm tracking-tight active:scale-[0.98] transition-all duration-100"
+            disabled={loading}
+            className="mt-2 w-full h-[46px] rounded-xl font-semibold text-sm text-white flex items-center justify-center gap-2 transition-all duration-100 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+            style={{
+              background: "linear-gradient(135deg, #7c3aed, #4f87e8)",
+              boxShadow: "0 4px 20px rgba(124,58,237,0.35)",
+              border: "none",
+            }}
           >
-            Create account
+            {loading ? (
+              <>
+                <svg
+                  className="w-4 h-4 animate-spin"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
+                </svg>
+                Creating account…
+              </>
+            ) : (
+              "Create account"
+            )}
           </button>
         </form>
-        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-        <p className="text-center text-xs text-zinc-600 mt-8">
+
+        <p
+          className="text-center text-xs mt-6 cursor-pointer"
+          style={{ color: "rgba(220,220,255,0.45)" }}
+        >
           Already have an account?{" "}
           <span
-            className="text-zinc-400 hover:text-zinc-200 cursor-pointer transition-colors font-medium"
+            className="transition-colors"
+            style={{ color: "#a78bfa" }}
             onClick={() => navigate("/login")}
           >
             Sign in
